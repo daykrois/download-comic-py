@@ -1,13 +1,23 @@
 import requests
 from bs4 import BeautifulSoup
 import re
+from urllib.parse import urlencode
+from py_mini_racer import MiniRacer
 
-# headers = {
-#     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0',
-#     'Referer': 'https://tel.dm5.com/m5338/',
-# }
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0',
+    'Referer': 'https://tel.dm5.com/m5338/',
+}
 
 url = 'https://tel.dm5.com/m5338/'
+
+_cid = ''
+_mid = ''
+_dt = ''
+_sign = ''
+dm5_key = '53dd75c1892f5413'
+
 
 response = requests.get(url)
 soup = BeautifulSoup(response.text,'html.parser')
@@ -27,6 +37,47 @@ for script in scripts:
             variables_dict[variable] = value.strip("'")
         # 打印提取的变量和值
         for variable, value in variables_dict.items():
-            print(f"{variable}: {value}")
-        break
+            if variable == 'DM5_VIEWSIGN':
+                _sign = value.strip('"')
+            if variable == 'DM5_VIEWSIGN_DT':
+                _dt = value.strip('"')
+            if variable == 'DM5_CID':
+                _cid = value
+            if variable == 'DM5_MID':
+                _mid = value
+        
+        
+page = 1
+url = 'https://tel.dm5.com/m5338/chapterfun.ashx'
 
+# print(url+'?'+urlencode(params))
+while(page < 10):
+    params = {
+    'cid': _cid,
+    'page': page,  
+    'key': dm5_key,  
+    'language': '1',
+    'gtk': '6',
+    '_cid': _cid,
+    '_mid': _mid,
+    '_dt': _dt,  
+    '_sign': _sign
+    }
+    response = requests.get(url,params=params,headers=headers)
+    if response.status_code == 200:
+        # print(response.text)
+        ctx = MiniRacer()
+        image_url = ctx.execute(response.text)[0]
+        print(image_url)
+        response = requests.get(image_url,headers=headers)
+        if response.status_code == 200:
+        # 如果成功，将图片内容写入文件
+            with open('downloaded_image'+str(page)+'.jpg', 'wb') as file:
+                file.write(response.content)
+            print('图片已成功保存到本地。')
+            page += 1
+        else:   
+            # 如果请求失败，打印错误信息
+            print(f'图片下载失败，状态码：{response.status_code}')
+    else:
+        print(f"响应失败，状态码 {response.status_code}")
