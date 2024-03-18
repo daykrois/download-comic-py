@@ -16,7 +16,7 @@ _cid = ''
 _mid = ''
 _dt = ''
 _sign = ''
-dm5_key = '53dd75c1892f5413'
+dm5_key = '09f55502cef672b4'
 
 
 response = requests.get(url)
@@ -45,7 +45,14 @@ for script in scripts:
                 _cid = value
             if variable == 'DM5_MID':
                 _mid = value
-        
+    # if 'eval' in script_content:
+    #     print(script_content)
+        # ['0', '2', '9', '3', 'd', '3', '9', '8', '9', '8', '0', '8', '8', 'a', '4', 'c']
+        # f293d39898f88a4c
+        # 09f55502cef672b4
+        # pattern = r'(\d|\w)\\'
+        # matches = re.findall(pattern, script_content)
+        # print(matches)
         
 page = 1
 url = 'https://tel.dm5.com/m5338/chapterfun.ashx'
@@ -55,7 +62,7 @@ while(page < 10):
     params = {
     'cid': _cid,
     'page': page,  
-    'key': dm5_key,  
+    # 'key': dm5_key,  
     'language': '1',
     'gtk': '6',
     '_cid': _cid,
